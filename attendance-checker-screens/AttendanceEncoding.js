@@ -15,6 +15,8 @@ import moment from "moment";
 import SaveAttendanceRecordTable from "./SaveAttendanceRecordTable";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE_URL } from "../config/api";
 
 const YEARS = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 const COURSES = [
@@ -39,8 +41,8 @@ const ROOMS = [
   "408", "409",
 ];
 
-const API_URL = "http://192.168.1.7:8000/api/attendance";
-const DUTIES_API_URL = "http://192.168.1.7:8000/api/duties";
+const API_URL = `${API_BASE_URL}/api/attendance`;
+const DUTIES_API_URL = `${API_BASE_URL}/api/duties`;
 
 const AttendanceEncoding = () => {
   const [studentName, setStudentName] = useState("");
@@ -56,6 +58,37 @@ const AttendanceEncoding = () => {
   const [classStatus, setClassStatus] = useState(null);
   const [facilitatorStatus, setFacilitatorStatus] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [checkerId, setCheckerId] = useState("");
+  const [checkerName, setCheckerName] = useState("");
+
+  // Fetch checker information on mount
+  useEffect(() => {
+    const loadCheckerInfo = async () => {
+      try {
+        const username = await AsyncStorage.getItem("username");
+        if (username) {
+          setCheckerId(username);
+          // Try to get checker name from scholar/user data
+          try {
+            const response = await axios.get(`${API_BASE_URL}/api/scholars`);
+            const scholars = response.data;
+            const checker = scholars.find((s) => s.id === username || s.id === username.trim());
+            if (checker) {
+              setCheckerName(checker.name || username);
+            } else {
+              setCheckerName(username);
+            }
+          } catch (error) {
+            console.error("Error fetching checker name:", error);
+            setCheckerName(username);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading checker info:", error);
+      }
+    };
+    loadCheckerInfo();
+  }, []);
 
   // Fetch records on mount
   useEffect(() => {
@@ -156,18 +189,20 @@ const AttendanceEncoding = () => {
           }
       }
 
-      // 3. Create the base new record
-      let newRecord = {
-        studentName: trimmedName || "", // Use empty string if no input
-        studentId: studentId || "",
-        yearLevel: yearLevel || null,
-        course: course || null,
-        dutyType: dutyType || null,
-        room,
-        classStatus, // Retains the user-selected value
-        facilitatorStatus,
-        encodedTime: moment().format("MM/DD/YYYY hh:mm A"),
-      };
+      // 3. Create the base new record
+      let newRecord = {
+        studentName: trimmedName || "", // Use empty string if no input
+        studentId: studentId || "",
+        yearLevel: yearLevel || null,
+        course: course || null,
+        dutyType: dutyType || null,
+        room,
+        classStatus, // Retains the user-selected value
+        facilitatorStatus,
+        encodedTime: moment().format("MM/DD/YYYY hh:mm A"),
+        checkerId: checkerId || "",
+        checkerName: checkerName || "",
+      };
 
       // 4. Apply 'N/A' overrides for "No Facilitator"
       if (facilitatorStatus === "No Facilitator") {

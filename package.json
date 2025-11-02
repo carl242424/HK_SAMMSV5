@@ -11,7 +11,8 @@
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
     "@expo/vector-icons": "^15.0.2",
-    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@faker-js/faker": "^10.1.0",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-picker/picker": "^2.11.1",
     "@react-navigation/bottom-tabs": "^7.4.7",
     "@react-navigation/drawer": "^7.5.9",
@@ -37,7 +38,7 @@
     "moment": "^2.30.1",
     "moment-timezone": "^0.6.0",
     "mongodb": "^6.20.0",
-    "mongoose": "^8.19.1",
+    "mongoose": "^8.19.2",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.9",
     "qrcode": "^1.5.4",

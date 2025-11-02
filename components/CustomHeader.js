@@ -23,8 +23,10 @@ export default function CustomHeader() {
     { name: 'Duty Management', icon: 'clipboard', screen: 'Duty' },
     { name: 'Generate QR', icon: 'qr-code', screen: 'QR' },
     { name: 'Manage Admins', icon: 'shield-checkmark', screen: 'Admin' },
+    {name:    'Reports', icon:'document-text', screen:'Report'},
     { name: 'Admin Profile', icon: 'person', screen: 'Profile' },
     { name: 'Logout', icon: 'log-out', screen: 'Logout' },
+
   ];
 
   const handleMenuItemPress = async (screen) => {

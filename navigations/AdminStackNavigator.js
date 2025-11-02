@@ -10,6 +10,7 @@ import ManageDuty from '../admin-screens/DutyManagement';
 import GenerateQR from '../admin-screens/GenerateQr';
 import AdminProfile from '../admin-screens/AdminProfile';
 import ManageAdmins from '../admin-screens/ManageAdmins';
+import Report from '../admin-screens/Report';
 
 const Stack = createNativeStackNavigator();
 
@@ -54,6 +55,11 @@ export default function AdminStackNavigator() {
         name="Profile" 
         component={AdminProfile}
         options={{ title: 'Admin Profile' }}
+      />
+      <Stack.Screen 
+        name="Report" 
+        component={Report}
+        options={{ title: 'Reports' }}
       />
     </Stack.Navigator>
   );

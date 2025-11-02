@@ -31,7 +31,7 @@ const StudentFaciProfile = ({ navigation }) => {
       console.log('🆔 Username retrieved:', username);
 
       // API call to fetch scholar by id (username)
-      const apiUrl = 'http://192.168.1.7:8000/api/scholars';
+      const apiUrl = 'http://192.168.1.9:8000/api/scholars';
       const response = await axios.get(`${apiUrl}/${username}`, {
         headers: {
           Authorization: `Bearer ${token}`,
