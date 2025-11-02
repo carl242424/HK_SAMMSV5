@@ -253,14 +253,12 @@ const DatePickerModal = ({ isVisible, onClose, onSelectDate, initialYear, initia
   const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const MONTHS_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const currentYear = new Date().getFullYear();
-  // Show years from currentYear + 3 down to currentYear - 7 to include 2024
   const YEARS = Array.from({ length: 11 }, (_, i) => currentYear + 3 - i).sort((a, b) => b - a);
 
   const [selectedYear, setSelectedYear] = useState(initialYear);
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(initialMonthIndex);
 
   const handleSelect = (year, monthIndex) => {
-    // Pass full month name to match MONTHS_FULL in Dashboard
     onSelectDate(year, MONTHS_FULL[monthIndex]);
   };
 
@@ -321,8 +319,7 @@ const Dashboard = () => {
     }
     return width < 768;
   });
-  
-  // Update screen size on window resize
+
   useEffect(() => {
     const updateScreenSize = () => {
       let currentWidth;
@@ -333,13 +330,10 @@ const Dashboard = () => {
       }
       const isSmall = currentWidth < 768;
       setIsSmallScreen(isSmall);
-      if (Platform.OS === 'web') {
-        console.log(`[Responsive] Screen width: ${currentWidth}px, isSmallScreen: ${isSmall}`);
-      }
     };
-    
+
     updateScreenSize();
-    
+
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       window.addEventListener('resize', updateScreenSize);
       window.addEventListener('orientationchange', updateScreenSize);
@@ -449,157 +443,151 @@ const Dashboard = () => {
   // ──────────────────────────────────────────────────────
   //  FETCH SCHOLARS + GROWTH
   // ──────────────────────────────────────────────────────
- useEffect(() => {
-  const fetchDashboardData = async () => {
-    try {
-      const [scholarsRes, attendanceRes] = await Promise.all([
-        fetch('http://192.168.1.9:8000/api/scholars'),
-        fetch(`http://192.168.1.9:8000/api/attendance?month=10&year=2025`),
-      ]);
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [scholarsRes, attendanceRes] = await Promise.all([
+          fetch('http://192.168.1.9:8000/api/scholars'),
+          fetch(`http://192.168.1.9:8000/api/attendance?month=10&year=2025`),
+        ]);
 
-      const scholars = await scholarsRes.json();
-      const attendance = await attendanceRes.json();
+        const scholars = await scholarsRes.json();
+        const attendance = await attendanceRes.json();
 
-      // Total Scholars
-      setTotalScholars(scholars.length.toString());
+        setTotalScholars(scholars.length.toString());
 
-      // Present / Absent Today
-      const today = moment().format('YYYY-MM-DD');
-      const todayRecords = attendance.filter(a => moment(a.encodedTime).format('YYYY-MM-DD') === today);
-      const present = todayRecords.filter(a => a.classStatus === 'Present').length;
-      const absent = todayRecords.filter(a => a.classStatus === 'Absent').length;
+        const today = moment().format('YYYY-MM-DD');
+        const todayRecords = attendance.filter(a => moment(a.encodedTime).format('YYYY-MM-DD') === today);
+        const present = todayRecords.filter(a => a.classStatus === 'Present').length;
+        const absent = todayRecords.filter(a => a.classStatus === 'Absent').length;
 
-      setPresentToday(present.toString());
-      setAbsentToday(absent.toString());
+        setPresentToday(present.toString());
+        setAbsentToday(absent.toString());
 
-      // Weekly Average (last 7 days)
-      const last7Days = Array.from({ length: 7 }, (_, i) => {
-        const d = moment().subtract(i, 'days').format('YYYY-MM-DD');
-        const dayRecords = attendance.filter(a => moment(a.encodedTime).format('YYYY-MM-DD') === d);
-        const p = dayRecords.filter(a => a.classStatus === 'Present').length;
-        const total = dayRecords.length;
-        return { p, total };
-      });
+        const last7Days = Array.from({ length: 7 }, (_, i) => {
+          const d = moment().subtract(i, 'days').format('YYYY-MM-DD');
+          const dayRecords = attendance.filter(a => moment(a.encodedTime).format('YYYY-MM-DD') === d);
+          const p = dayRecords.filter(a => a.classStatus === 'Present').length;
+          const total = dayRecords.length;
+          return { p, total };
+        });
 
-      const weeklyPresent = last7Days.reduce((sum, d) => sum + d.p, 0);
-      const weeklyTotal = last7Days.reduce((sum, d) => sum + d.total, 0);
-      const weeklyRate = weeklyTotal > 0 ? (weeklyPresent / weeklyTotal) * 100 : 0;
-      setWeeklyAverage(`${weeklyRate.toFixed(0)}%`);
+        const weeklyPresent = last7Days.reduce((sum, d) => sum + d.p, 0);
+        const weeklyTotal = last7Days.reduce((sum, d) => sum + d.total, 0);
+        const weeklyRate = weeklyTotal > 0 ? (weeklyPresent / weeklyTotal) * 100 : 0;
+        setWeeklyAverage(`${weeklyRate.toFixed(0)}%`);
 
-      // Growth (vs previous week)
-      const prev7Days = Array.from({ length: 7 }, (_, i) => {
-        const d = moment().subtract(i + 7, 'days').format('YYYY-MM-DD');
-        const dayRecords = attendance.filter(a => moment(a.encodedTime).format('YYYY-MM-DD') === d);
-        const p = dayRecords.filter(a => a.classStatus === 'Present').length;
-        const total = dayRecords.length;
-        return { p, total };
-      });
+        const prev7Days = Array.from({ length: 7 }, (_, i) => {
+          const d = moment().subtract(i + 7, 'days').format('YYYY-MM-DD');
+          const dayRecords = attendance.filter(a => moment(a.encodedTime).format('YYYY-MM-DD') === d);
+          const p = dayRecords.filter(a => a.classStatus === 'Present').length;
+          const total = dayRecords.length;
+          return { p, total };
+        });
 
-      const prevPresent = prev7Days.reduce((sum, d) => sum + d.p, 0);
-      const prevTotal = prev7Days.reduce((sum, d) => sum + d.total, 0);
-      const prevRate = prevTotal > 0 ? (prevPresent / prevTotal) * 100 : 0;
-      const growth = weeklyRate - prevRate;
-      setWeeklyGrowth(growth > 0 ? `+${growth.toFixed(1)}%` : `${growth.toFixed(1)}%`);
+        const prevPresent = prev7Days.reduce((sum, d) => sum + d.p, 0);
+        const prevTotal = prev7Days.reduce((sum, d) => sum + d.total, 0);
+        const prevRate = prevTotal > 0 ? (prevPresent / prevTotal) * 100 : 0;
+        const growth = weeklyRate - prevRate;
+        setWeeklyGrowth(growth > 0 ? `+${growth.toFixed(1)}%` : `${growth.toFixed(1)}%`);
 
-      // Year-Level & Department Analysis
-      const totalForShare = scholars.length || 1;
+        const totalForShare = scholars.length || 1;
 
-      const yearSummary = YEARS.map(year => {
-        const count = scholars.filter(s => s.year === year).length;
-        const share = Number(((count / totalForShare) * 100).toFixed(1));
-        return { year, count, share };
-      });
+        const yearSummary = YEARS.map(year => {
+          const count = scholars.filter(s => s.year === year).length;
+          const share = Number(((count / totalForShare) * 100).toFixed(1));
+          return { year, count, share };
+        });
 
-      const topYear = yearSummary.reduce((a, b) => a.share > b.share ? a : b, { share: 0 });
-      const bottomYear = yearSummary.filter(y => y.year !== topYear.year).reduce((a, b) => a.share < b.share ? a : b, { share: 100 });
+        const topYear = yearSummary.reduce((a, b) => a.share > b.share ? a : b, { share: 0 });
+        const bottomYear = yearSummary.filter(y => y.year !== topYear.year).reduce((a, b) => a.share < b.share ? a : b, { share: 100 });
 
-      setYearLevelPerformance(yearSummary.map(item => ({
-        ...item,
-        projectedShare: Number(Math.min(100, item.share + 1.5).toFixed(1)),
-        trend: item.share === topYear.share ? 'increasing' : item.share === bottomYear.share ? 'decreasing' : 'stable',
-        trendColor: item.share === topYear.share ? '#3b82f6' : item.share === bottomYear.share ? '#ef4444' : '#6b7280'
-      })));
+        setYearLevelPerformance(yearSummary.map(item => ({
+          ...item,
+          projectedShare: Number(Math.min(100, item.share + 1.5).toFixed(1)),
+          trend: item.share === topYear.share ? 'increasing' : item.share === bottomYear.share ? 'decreasing' : 'stable',
+          trendColor: item.share === topYear.share ? '#3b82f6' : item.share === bottomYear.share ? '#ef4444' : '#6b7280'
+        })));
 
-      // Generate informative year-level insight
-      if (topYear.share > 0 && yearSummary.length > 0) {
-        const totalScholars = yearSummary.reduce((sum, y) => sum + y.count, 0);
-        const avgShare = (100 / yearSummary.length).toFixed(1);
-        const insights = [];
-        
-        if (topYear.share > parseFloat(avgShare) * 1.2) {
-          insights.push(`${topYear.year} dominates with ${topYear.share}% of all scholars (${topYear.count} students), significantly above the average distribution.`);
+        if (topYear.share > 0 && yearSummary.length > 0) {
+          const totalScholars = yearSummary.reduce((sum, y) => sum + y.count, 0);
+          const avgShare = (100 / yearSummary.length).toFixed(1);
+          const insights = [];
+          
+          if (topYear.share > parseFloat(avgShare) * 1.2) {
+            insights.push(`${topYear.year} dominates with ${topYear.share}% of all scholars (${topYear.count} students), significantly above the average distribution.`);
+          } else {
+            insights.push(`${topYear.year} leads with ${topYear.share}% share, representing ${topYear.count} scholars in the program.`);
+          }
+          
+          const stableYears = yearSummary.filter(y => y.share >= parseFloat(avgShare) * 0.8 && y.share <= parseFloat(avgShare) * 1.2);
+          if (stableYears.length > 1) {
+            insights.push(`Distribution is balanced across ${stableYears.length} year levels.`);
+          }
+          
+          setYearLevelInsight(insights.join(' '));
         } else {
-          insights.push(`${topYear.year} leads with ${topYear.share}% share, representing ${topYear.count} scholars in the program.`);
+          setYearLevelInsight('Year-level analytics will appear here once scholar data is available.');
         }
+
+        const deptMap = new Map();
+        scholars.forEach(s => {
+          const course = s.course || 'Unknown';
+          deptMap.set(course, (deptMap.get(course) || 0) + 1);
+        });
+
+        const deptSummary = Array.from(deptMap.entries())
+          .map(([name, count]) => ({
+            name,
+            count,
+            share: Number(((count / totalForShare) * 100).toFixed(1))
+          }))
+          .sort((a, b) => b.share - a.share)
+          .slice(0, 5)
+          .map((d, i) => ({
+            ...d,
+            rank: i + 1,
+            consistency: d.share >= 25 ? 'high share' : d.share >= 15 ? 'steady share' : 'growing share',
+            consistencyColor: d.share >= 25 ? '#10b981' : d.share >= 15 ? '#6b7280' : '#f59e0b'
+          }));
+
+        setTopDepartments(deptSummary);
         
-        const stableYears = yearSummary.filter(y => y.share >= parseFloat(avgShare) * 0.8 && y.share <= parseFloat(avgShare) * 1.2);
-        if (stableYears.length > 1) {
-          insights.push(`Distribution is balanced across ${stableYears.length} year levels, indicating healthy enrollment.`);
+        if (deptSummary.length > 0) {
+          const insights = [];
+          const topDept = deptSummary[0];
+          
+          insights.push(`${topDept.name} leads with ${topDept.share}% of all scholars (${topDept.count} students).`);
+          
+          if (topDept.share >= 25) {
+            insights.push(`This department has a strong presence with over a quarter of the total scholar population.`);
+          } else if (topDept.share >= 15) {
+            insights.push(`This department maintains a steady representation among all programs.`);
+          }
+          
+          if (deptSummary.length >= 3) {
+            const top3Total = deptSummary.slice(0, 3).reduce((sum, d) => sum + d.share, 0);
+            insights.push(`The top 3 departments account for ${top3Total.toFixed(1)}% of scholars, showing concentrated participation.`);
+          }
+          
+          if (deptSummary.length >= 5) {
+            const diversity = deptSummary.length;
+            insights.push(`The program spans ${diversity} different departments, reflecting diverse academic interests.`);
+          }
+          
+          setDepartmentInsight(insights.join(' '));
+        } else {
+          setDepartmentInsight('Department analytics will appear here once scholar data is available.');
         }
-        
-        setYearLevelInsight(insights.join(' '));
-      } else {
-        setYearLevelInsight('Year-level analytics will appear here once scholar data is available.');
+
+      } catch (error) {
+        console.error('Dashboard fetch error:', error);
       }
+    };
 
-      const deptMap = new Map();
-      scholars.forEach(s => {
-        const course = s.course || 'Unknown';
-        deptMap.set(course, (deptMap.get(course) || 0) + 1);
-      });
+    fetchDashboardData();
+  }, []);
 
-      const deptSummary = Array.from(deptMap.entries())
-        .map(([name, count]) => ({
-          name,
-          count,
-          share: Number(((count / totalForShare) * 100).toFixed(1))
-        }))
-        .sort((a, b) => b.share - a.share)
-        .slice(0, 5)
-        .map((d, i) => ({
-          ...d,
-          rank: i + 1,
-          consistency: d.share >= 25 ? 'high share' : d.share >= 15 ? 'steady share' : 'growing share',
-          consistencyColor: d.share >= 25 ? '#10b981' : d.share >= 15 ? '#6b7280' : '#f59e0b'
-        }));
-
-      setTopDepartments(deptSummary);
-      
-      // Generate informative department insight
-      if (deptSummary.length > 0) {
-        const insights = [];
-        const topDept = deptSummary[0];
-        
-        insights.push(`${topDept.name} leads with ${topDept.share}% of all scholars (${topDept.count} students).`);
-        
-        if (topDept.share >= 25) {
-          insights.push(`This department has a strong presence with over a quarter of the total scholar population.`);
-        } else if (topDept.share >= 15) {
-          insights.push(`This department maintains a steady representation among all programs.`);
-        }
-        
-        if (deptSummary.length >= 3) {
-          const top3Total = deptSummary.slice(0, 3).reduce((sum, d) => sum + d.share, 0);
-          insights.push(`The top 3 departments account for ${top3Total.toFixed(1)}% of scholars, showing concentrated participation.`);
-        }
-        
-        if (deptSummary.length >= 5) {
-          const diversity = deptSummary.length;
-          insights.push(`The program spans ${diversity} different departments, reflecting diverse academic interests.`);
-        }
-        
-        setDepartmentInsight(insights.join(' '));
-      } else {
-        setDepartmentInsight('Department analytics will appear here once scholar data is available.');
-      }
-
-    } catch (error) {
-      console.error('Dashboard fetch error:', error);
-    }
-  };
-
-  fetchDashboardData();
-}, []);
   // ──────────────────────────────────────────────────────
   //  FETCH TODAY'S PRESENT/ABSENT
   // ──────────────────────────────────────────────────────
@@ -756,15 +744,10 @@ const Dashboard = () => {
   const fetchWeekDataForMonth = async (year, monthName, setDailyStatus, setSummary, setPieData = null) => {
     try {
       const monthIndex = MONTHS_FULL.indexOf(monthName);
-      if (monthIndex === -1) {
-        throw new Error(`Invalid month name: ${monthName}`);
-      }
+      if (monthIndex === -1) throw new Error(`Invalid month name: ${monthName}`);
 
-      // Try to fetch data for the specific month/year if API supports it
-      // Otherwise fetch all data and filter client-side
       const monthNumber = monthIndex + 1;
       
-      // Try fetching from attendance API first for better filtering
       let attendanceData = [];
       try {
         const attendanceRes = await fetch(`http://192.168.1.9:8000/api/attendance?month=${monthNumber}&year=${year}`);
@@ -775,7 +758,6 @@ const Dashboard = () => {
         console.log('Attendance API not available, using faci/checker endpoints');
       }
 
-      // Also fetch from faci and checker endpoints
       const [faciRes, checkerRes] = await Promise.all([
         fetch('http://192.168.1.9:8000/api/faci-attendance'),
         fetch('http://192.168.1.9:8000/api/checkerAttendance'),
@@ -787,36 +769,25 @@ const Dashboard = () => {
       const now = moment();
       const selectedDate = moment(`${year}-${monthNumber}-01`, 'YYYY-M-D');
       
-      // Determine week range - show current week if selected month is current month, otherwise first week
       let startOfWeek, endOfWeek;
       if (selectedDate.year() === now.year() && selectedDate.month() === now.month()) {
-        // Current month - show current week
         startOfWeek = now.clone().startOf('week');
         endOfWeek = now.clone().endOf('week');
       } else {
-        // Past/future month - show first week of that month
         startOfWeek = selectedDate.clone().startOf('month').startOf('week');
         endOfWeek = selectedDate.clone().startOf('month').endOf('week');
         
-        // Limit to the month boundary
         const monthStart = selectedDate.clone().startOf('month');
         const monthEnd = selectedDate.clone().endOf('month');
         if (startOfWeek.isBefore(monthStart)) startOfWeek = monthStart.clone();
         if (endOfWeek.isAfter(monthEnd)) endOfWeek = monthEnd.clone();
       }
 
-      // Filter function for attendance records
       const filterWeek = (records, useEncodedTime = false) => {
         return records.filter(att => {
-          let timestamp;
-          if (useEncodedTime && att.encodedTime) {
-            timestamp = att.encodedTime;
-          } else {
-            timestamp = att.checkInTime || att.scheduleDate || att.createdAt || att.encodedTime;
-          }
+          let timestamp = useEncodedTime && att.encodedTime ? att.encodedTime : att.checkInTime || att.scheduleDate || att.createdAt || att.encodedTime;
           if (!timestamp) return false;
           
-          // Parse timestamp - handle YYYY-MM-DD HH:mm:ss format
           let checkIn;
           if (typeof timestamp === 'string' && timestamp.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)) {
             checkIn = moment(timestamp, 'YYYY-MM-DD HH:mm:ss', true);
@@ -829,14 +800,10 @@ const Dashboard = () => {
         });
       };
 
-      // Process attendance API data
       const attendanceWeek = filterWeek(attendanceData, true);
-      
-      // Process faci and checker data
       const faciWeek = filterWeek(faciAttendances);
       const checkerWeek = filterWeek(checkerAttendances);
       
-      // Combine all records
       const combinedWeekRecords = [...attendanceWeek, ...faciWeek, ...checkerWeek];
 
       const dailyTemplate = weekDayOrder.map((day) => ({ day, present: 0, absent: 0, total: 0 }));
@@ -849,7 +816,6 @@ const Dashboard = () => {
         let timestamp = att.encodedTime || att.checkInTime || att.scheduleDate || att.createdAt;
         if (!timestamp) return;
         
-        // Parse timestamp - handle YYYY-MM-DD HH:mm:ss format
         let checkIn;
         if (typeof timestamp === 'string' && timestamp.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)) {
           checkIn = moment(timestamp, 'YYYY-MM-DD HH:mm:ss', true);
@@ -865,7 +831,6 @@ const Dashboard = () => {
 
         bucket.total += 1;
         
-        // Handle different status formats
         let status = '';
         if (att.classStatus) {
           status = att.classStatus.toLowerCase().trim();
@@ -908,7 +873,7 @@ const Dashboard = () => {
   };
 
   // ──────────────────────────────────────────────────────
-  //  FETCH THIS WEEK TOTAL CHECK-INS (Based on selected month/year)
+  //  FETCH THIS WEEK TOTAL CHECK-INS
   // ──────────────────────────────────────────────────────
   useEffect(() => {
     const fetchWeekDataForSelectedMonth = async () => {
@@ -921,30 +886,23 @@ const Dashboard = () => {
         const daily = weekDayOrder.map(day => ({ day, present: 0, absent: 0, total: 0 }));
         const dayMap = Object.fromEntries(daily.map(d => [d.day, d]));
 
-        // Determine the week range for the selected month
         const now = moment();
         const selectedDate = moment(`${selectedYear}-${monthNumber}-01`, 'YYYY-M-D');
         let startOfWeek, endOfWeek;
         
         if (selectedDate.year() === now.year() && selectedDate.month() === now.month()) {
-          // Current month - show current week
           startOfWeek = now.clone().startOf('week');
           endOfWeek = now.clone().endOf('week');
         } else {
-          // Past month - show first week of that month
           startOfWeek = selectedDate.clone().startOf('month').startOf('week');
           endOfWeek = selectedDate.clone().startOf('month').endOf('week');
         }
 
-        // Filter records for the selected week
         records.forEach(r => {
-          // Parse encodedTime - try multiple formats
           let recordDate;
           if (typeof r.encodedTime === 'string') {
-            // Try YYYY-MM-DD HH:mm:ss format first (our generated data)
             recordDate = moment(r.encodedTime, 'YYYY-MM-DD HH:mm:ss', true);
             if (!recordDate.isValid()) {
-              // Fallback to other formats
               recordDate = moment(r.encodedTime);
             }
           } else {
@@ -987,7 +945,7 @@ const Dashboard = () => {
   }, [selectedMonth, selectedYear]);
 
   // ──────────────────────────────────────────────────────
-  //  FETCH DATA FOR CHARTS (Based on date picker selections)
+  //  FETCH DATA FOR CHARTS
   // ──────────────────────────────────────────────────────
   useEffect(() => {
     fetchWeekDataForMonth(lineChartYear, lineChartMonth, setLineChartDailyStatus, setLineChartSummary);
@@ -1233,7 +1191,7 @@ const Dashboard = () => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={[
           styles.cardsRow,
-          Platform.OS === 'web' && { justifyContent: 'flex-end'  },
+          Platform.OS === 'web' && { justifyContent: 'flex-end' },
         ]}
       >
         {statsData.map((stat, index) => (
@@ -1253,54 +1211,9 @@ const Dashboard = () => {
         initialMonthIndex={selectedMonthIndex}
       />
 
+      {/* TOP ROW: Daily Attendance Count (Bar Chart) + Weekly Trend (Line Chart) */}
       <View style={isSmallScreen ? styles.topRowMobile : styles.topRow}>
-        <View style={isSmallScreen ? styles.leftColumnMobile : styles.leftColumn}>
-          <View style={isSmallScreen ? styles.cardWrapperMobile : styles.cardWrapper}>
-            <PredictiveYearLevelAnalysis items={yearLevelPerformance} insight={yearLevelInsight} />
-          </View>
-        </View>
-
-        <View style={isSmallScreen ? styles.centerColumnMobile : styles.centerColumn}>
-          <View style={styles.cardWrapper}>
-            <TopPerformingDepartments departments={topDepartments} insight={departmentInsight} />
-          </View>
-        </View>
-
-        <View style={isSmallScreen ? styles.rightColumnMobile : styles.rightColumn}>
-          <GraphPlaceholder
-            title={`Weekly Attendance Trend (This Week)`}
-            height={isSmallScreen ? 300 : 340}
-            filterMenu={lineFilters}
-            datePickerButton={
-              <TouchableOpacity
-                style={styles.datePickerButtonSmall}
-                onPress={() => setIsLineChartModalVisible(true)}
-              >
-                <Ionicons name="calendar-outline" size={16} color="#1d4ed8" style={{ marginRight: 6 }} />
-                <Text style={styles.datePickerTextSmall}>{`${lineChartMonth.slice(0, 3)} ${lineChartYear}`}</Text>
-              </TouchableOpacity>
-            }
-          >
-            {filteredLineData.labels.length > 0 ? (
-              <LineChart
-                data={filteredLineData}
-                height={isSmallScreen ? 240 : 300}
-                chartConfig={chartConfig}
-                bezier
-                withVerticalLines={false}
-                withDots
-                showLegend
-                withShadow
-              />
-            ) : (
-              <Text style={styles.graphLabel}>No data selected.</Text>
-            )}
-          </GraphPlaceholder>
-        </View>
-      </View>
-
-      <View style={isSmallScreen ? styles.bottomRowMobile : styles.bottomRow}>
-        <View style={isSmallScreen ? styles.chartColumnFull : styles.chartColumnNarrow}>
+        <View style={isSmallScreen ? styles.chartColumnFull : styles.chartColumnWide}>
           <GraphPlaceholder
             title={`Daily Attendance Counts`}
             height={300}
@@ -1356,7 +1269,54 @@ const Dashboard = () => {
           </GraphPlaceholder>
         </View>
 
-        <View style={isSmallScreen ? styles.chartColumnFull : styles.chartColumnWide}>
+        <View style={isSmallScreen ? styles.rightColumnMobile : styles.rightColumn}>
+          <GraphPlaceholder
+            title={`Weekly Attendance Trend `}
+            height={isSmallScreen ? 300 : 305}
+            filterMenu={lineFilters}
+            datePickerButton={
+              <TouchableOpacity
+                style={styles.datePickerButtonSmall}
+                onPress={() => setIsLineChartModalVisible(true)}
+              >
+                <Ionicons name="calendar-outline" size={16} color="#1d4ed8" style={{ marginRight: 6 }} />
+                <Text style={styles.datePickerTextSmall}>{`${lineChartMonth.slice(0, 3)} ${lineChartYear}`}</Text>
+              </TouchableOpacity>
+            }
+          >
+            {filteredLineData.labels.length > 0 ? (
+              <LineChart
+                data={filteredLineData}
+                height={isSmallScreen ? 240 : 280}
+                chartConfig={chartConfig}
+                bezier
+                withVerticalLines={false}
+                withDots
+                showLegend
+                withShadow
+              />
+            ) : (
+              <Text style={styles.graphLabel}>No data selected.</Text>
+            )}
+          </GraphPlaceholder>
+        </View>
+      </View>
+
+      {/* BOTTOM ROW: Year-Level + Top Departments + Pie Chart */}
+      <View style={isSmallScreen ? styles.bottomRowMobile : styles.bottomRow}>
+        <View style={isSmallScreen ? styles.leftColumnMobile : styles.leftColumn}>
+          <View style={isSmallScreen ? styles.cardWrapperMobile : styles.cardWrapper}>
+            <PredictiveYearLevelAnalysis items={yearLevelPerformance} insight={yearLevelInsight} />
+          </View>
+        </View>
+
+        <View style={isSmallScreen ? styles.centerColumnMobile : styles.centerColumn}>
+          <View style={styles.cardWrapper}>
+            <TopPerformingDepartments departments={topDepartments} insight={departmentInsight} />
+          </View>
+        </View>
+
+        <View style={isSmallScreen ? styles.chartColumnFull : styles.chartColumnNarrow}>
           <GraphPlaceholder
             title={`Monthly Distribution - ${presentPercent}% Present`}
             height={340}
@@ -1425,14 +1385,14 @@ const styles = StyleSheet.create({
   contentContainer: { padding: 16 },
   sectionHeader: { fontSize: 20, fontWeight: '700', color: '#333', marginTop: 20, marginBottom: 10 },
   cardsRow: { flexDirection: 'row', alignItems: 'center', gap: 40, paddingVertical: 5 },
-  card: { width: 250, minHeight: 130, backgroundColor: 'white', borderRadius: 16, padding: 10,  shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5 },
+  card: { width: 250, minHeight: 130, backgroundColor: 'white', borderRadius: 16, padding: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5 },
   cardIcon: { marginBottom: 8, alignSelf: 'flex-start' },
   cardTitle: { fontSize: 14, color: '#6b7280', fontWeight: '500' },
   cardValue: { fontSize: 24, fontWeight: 'bold', color: '#333', marginTop: 4 },
   cardDetail: { fontSize: 12, fontWeight: '600', marginTop: 6 },
-  datePickerButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12, borderWidth: 1, borderColor: '#e5e7eb', shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 4, ...(Platform.OS === 'web' && { boxShadow: '0px 3px 8px rgba(0,0,0,0.15)' }) },
+  datePickerButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12, borderWidth: 1, borderColor: '#e5e7eb', shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 4 },
   datePickerText: { fontSize: 16, fontWeight: '600', color: '#1f2937' },
-  graphContainer: { backgroundColor: 'white', borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#e5e7eb', shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 6, elevation: 6, ...(Platform.OS === 'web' && { boxShadow: '0px 4px 10px rgba(0,0,0,0.15), 0px 0px 4px rgba(0,0,0,0.05)' }) },
+  graphContainer: { backgroundColor: 'white', borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#e5e7eb', shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 },
   graphTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   graphTitle: { fontSize: 16, fontWeight: '600', color: '#333', flex: 1 },
   datePickerButtonSmall: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#e5e7eb', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 },
@@ -1447,14 +1407,14 @@ const styles = StyleSheet.create({
   topRowMobile: { flexDirection: 'column', gap: 16, marginBottom: 24, width: '100%', alignItems: 'stretch' },
   leftColumn: { flex: 1, minWidth: 300, maxWidth: '35%', marginBottom: 24 },
   centerColumn: { flex: 1, minWidth: 300, maxWidth: '35%', marginBottom: 24 },
-  rightColumn: { flex: 1, minWidth: 300, maxWidth: '30%', marginBottom: 24 },
+  rightColumn: { flex: 1, minWidth: 300, maxWidth: '35%', marginBottom: 24 },
   leftColumnMobile: { width: '100%', marginBottom: 16 },
   centerColumnMobile: { width: '100%', marginBottom: 16 },
   rightColumnMobile: { width: '100%', marginBottom: 16 },
   bottomRow: { flexDirection: 'row', gap: 20, marginBottom: 24 },
   bottomRowMobile: { flexDirection: 'column', gap: 16, marginBottom: 24, width: '100%', alignItems: 'stretch' },
-  chartColumnNarrow: { flex: 1, minWidth: 300, maxWidth: '70%', marginBottom: 24 },
-  chartColumnWide: { flex: 1, minWidth: 300, maxWidth: '30%', marginBottom: 24 },
+  chartColumnNarrow: { flex: 1, minWidth: 300, maxWidth: '35%', marginBottom: 24 },
+  chartColumnWide: { flex: 1, minWidth: 300, maxWidth: '65%', marginBottom: 24 },
   chartColumnFull: { width: '100%', marginBottom: 16 },
   cardWrapperMobile: { width: '100%', minHeight: 420 },
   filterMenuContainer: { marginBottom: 10 },
@@ -1480,7 +1440,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
-    minHeight: 300,
+    minHeight: 290,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.16,
@@ -1531,7 +1491,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#bbf7d0',
     borderRadius: 8,
-    minHeight: 150,
+    minHeight: 140,
   },
   summaryText: { fontSize: 14, color: '#166534', lineHeight: 20, flexShrink: 1, padding: 10 },
 });
