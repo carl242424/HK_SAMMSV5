@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const CHECKER_ATTENDANCE_URL = "http://192.168.86.144:8000/api/checkerAttendance";
+const CHECKER_ATTENDANCE_URL = "http://192.168.1.9:8000/api/checkerAttendance";
 
 const QRCheckIn = ({ scannedData }) => {
   const [records, setRecords] = useState([]);

@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import { StackedBarChart, LineChart } from 'react-native-chart-kit';
 
-const API_BASE_URL = 'http://192.168.86.144:8000';
+const API_BASE_URL = 'http://192.168.1.9:8000';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const ACDashboard = () => {
@@ -466,53 +466,8 @@ const ACDashboard = () => {
           )}
         </View>
       </View>
-      <View style={styles.chartSection}>
-        <Text style={styles.chartTitle}>Daily Attendance Distribution</Text>
-        <View style={styles.chartBox}>
-          {dailySummary.length > 0 ? (
-            <StackedBarChart
-              data={{
-                labels: dailySummary.map((item) => moment(item.date).format('MM/DD')),
-                legend: ['Present', 'Absent'],
-                data: dailySummary.map((item) => [item.present || 0, item.absent || 0]),
-                barColors: ['#10B981', '#EF4444'],
-              }}
-              width={Math.max(chartWidth, dailySummary.length * 60)}
-              height={240}
-              chartConfig={chartConfig}
-              style={styles.chartCanvas}
-            />
-          ) : (
-            <Text style={styles.chartEmptyText}>No attendance data for the selected range.</Text>
-          )}
-        </View>
-      </View>
-      <View style={styles.chartSection}>
-        <Text style={styles.chartTitle}>Weekly Attendance Trend</Text>
-        <View style={styles.chartBox}>
-          {weeklyTrend.length > 0 ? (
-            <LineChart
-              data={{
-                labels: weeklyTrend.map((item) => moment(item.date).format('ddd')),
-                datasets: [
-                  {
-                    data: weeklyTrend.map((item) => item.rate ?? 0),
-                    color: (opacity = 1) => `rgba(29, 78, 216, ${opacity})`,
-                    strokeWidth: 2,
-                  },
-                ],
-              }}
-              width={Math.max(chartWidth, weeklyTrend.length * 60)}
-              height={220}
-              chartConfig={chartConfig}
-              bezier
-              style={styles.chartCanvas}
-            />
-          ) : (
-            <Text style={styles.chartEmptyText}>Weekly trend will appear once attendance is recorded.</Text>
-          )}
-        </View>
-      </View>
+       
+      
     </ScrollView>
   );
 };

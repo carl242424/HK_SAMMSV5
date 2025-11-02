@@ -1302,7 +1302,7 @@ const Dashboard = () => {
       <View style={isSmallScreen ? styles.bottomRowMobile : styles.bottomRow}>
         <View style={isSmallScreen ? styles.chartColumnFull : styles.chartColumnNarrow}>
           <GraphPlaceholder
-            title={`Daily Attendance Counts (This Week)`}
+            title={`Daily Attendance Counts`}
             height={300}
             filterMenu={barFilters}
             datePickerButton={
@@ -1358,7 +1358,7 @@ const Dashboard = () => {
 
         <View style={isSmallScreen ? styles.chartColumnFull : styles.chartColumnWide}>
           <GraphPlaceholder
-            title={`This Week Distribution - ${presentPercent}% Present`}
+            title={`Monthly Distribution - ${presentPercent}% Present`}
             height={340}
             filterMenu={pieFilters}
             datePickerButton={
@@ -1480,7 +1480,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
-    minHeight: 390,
+    minHeight: 300,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.16,
@@ -1492,7 +1492,7 @@ const styles = StyleSheet.create({
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   cardIconContainer: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#e0e7ff', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
   analysisCardTitleBig: { fontSize: 18, fontWeight: '800', color: '#1f2937', marginBottom: 2 },
-  analysisCardSubtitle: { fontSize: 15, color: '#6b7280' },
+  analysisCardSubtitle: { fontSize: 14, color: '#6b7280' },
   yearLevelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, paddingVertical: 6 },
   yearLevelIconContainer: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#e0e7ff', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   yearLevelContent: { flex: 1, paddingLeft: 4 },

@@ -51,7 +51,7 @@ export default function AdminProfile() {
       return;
     }
 
-    const response = await axios.get("http://192.168.1.9:8081/api/users/profile", {
+    const response = await axios.get("http://192.168.1.9:8000/api/users/profile", {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -146,9 +146,7 @@ export default function AdminProfile() {
         <Text style={styles.label}>Password:</Text>
         <Text style={styles.value}>{adminData.password}</Text>
       </View>
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
+       
     </View>
   );
 }

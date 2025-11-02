@@ -132,10 +132,7 @@ const StudentFaciProfile = ({ navigation }) => {
         <Text style={styles.label}>Duty Type:</Text>
         <Text style={styles.value}>{scholar?.duty || 'N/A'}</Text>
       </View>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
+ 
     </View>
   );
 };

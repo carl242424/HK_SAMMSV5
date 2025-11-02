@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Alert,
   Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,48 +14,39 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CustomHeader() {
   const [menuVisible, setMenuVisible] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false); // New state
   const navigation = useNavigation();
 
   const menuItems = [
     { name: 'Dashboard', icon: 'home', screen: 'Dashboard' },
-    { name: 'Manage Accounts', icon: 'people', screen: 'Accounts' },
+    { name: 'Manage Scholars', icon: 'people', screen: 'Accounts' },
     { name: 'Duty Management', icon: 'clipboard', screen: 'Duty' },
     { name: 'Generate QR', icon: 'qr-code', screen: 'QR' },
     { name: 'Manage Admins', icon: 'shield-checkmark', screen: 'Admin' },
-    {name:    'Reports', icon:'document-text', screen:'Report'},
+    { name: 'Reports', icon: 'document-text', screen: 'Report' },
     { name: 'Admin Profile', icon: 'person', screen: 'Profile' },
     { name: 'Logout', icon: 'log-out', screen: 'Logout' },
-
   ];
 
-  const handleMenuItemPress = async (screen) => {
+  const handleMenuItemPress = (screen) => {
     setMenuVisible(false);
 
     if (screen === 'Logout') {
-      Alert.alert(
-        'Confirm Logout',
-        'Are you sure you want to log out?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Logout',
-            style: 'destructive',
-            onPress: async () => {
-              await AsyncStorage.removeItem('token');
-              await AsyncStorage.removeItem('role');
-
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-              });
-            },
-          },
-        ],
-        { cancelable: true }
-      );
+      setLogoutModalVisible(true); // Show custom modal
     } else {
       navigation.navigate(screen);
     }
+  };
+
+  const handleLogout = async () => {
+    setLogoutModalVisible(false);
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('role');
+
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
   };
 
   return (
@@ -65,6 +55,7 @@ export default function CustomHeader() {
         <Ionicons name="menu" size={24} color="white" />
       </TouchableOpacity>
 
+      {/* Main Menu Modal */}
       <Modal
         visible={menuVisible}
         transparent={true}
@@ -79,10 +70,9 @@ export default function CustomHeader() {
                   <Pressable
                     key={index}
                     onPress={() => handleMenuItemPress(item.screen)}
-                    style={({ pressed, hovered }) => [
+                    style={({ pressed }) => [
                       styles.menuItem,
-                      hovered && { backgroundColor: '#f3f4f6' }, // hover color (for web)
-                      pressed && { backgroundColor: '#e6f0ff' }, // pressed color (for mobile)
+                      pressed && { backgroundColor: '#e6f0ff' },
                       item.name === 'Logout' && { borderTopWidth: 1, borderTopColor: '#eee' },
                     ]}
                   >
@@ -102,6 +92,39 @@ export default function CustomHeader() {
                     </Text>
                   </Pressable>
                 ))}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={logoutModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setLogoutModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setLogoutModalVisible(false)}>
+          <View style={styles.logoutOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.logoutModal}>
+                <Ionicons name="log-out-outline" size={40} color="red" style={{ marginBottom: 10 }} />
+                <Text style={styles.logoutTitle}>Confirm Logout</Text>
+                <Text style={styles.logoutMessage}>Are you sure you want to log out?</Text>
+
+                <View style={styles.logoutButtons}>
+                  <Pressable
+                    onPress={() => setLogoutModalVisible(false)}
+                    style={[styles.logoutButton, styles.cancelButton]}
+                  >
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </Pressable>
+
+                  <Pressable onPress={handleLogout} style={[styles.logoutButton, styles.confirmButton]}>
+                    <Text style={styles.confirmButtonText}>Logout</Text>
+                  </Pressable>
+                </View>
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -144,5 +167,65 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 16,
     color: '#333',
+  },
+
+  // Logout Modal Styles
+  logoutOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoutModal: {
+    backgroundColor: 'white',
+    padding: 24,
+    borderRadius: 16,
+    width: '25%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  logoutTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+  },
+  logoutMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  logoutButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  logoutButton: {
+    flex: 1,
+    paddingVertical: 12,
+    marginHorizontal: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#f0f0f0',
+  },
+  confirmButton: {
+    backgroundColor: '#dc3545',
+  },
+  cancelButtonText: {
+    color: '#333',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });

@@ -601,33 +601,7 @@ const SFDashboard = () => {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Weekly Attendance Trend</Text>
-        <View style={styles.box}>
-          {weeklyTrend.length > 0 ? (
-            <LineChart
-              data={{
-                labels: weeklyTrend.map((item) => moment(item.date).format('ddd')),
-                datasets: [
-                  {
-                    data: weeklyTrend.map((item) => item.rate ?? 0),
-                    color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
-                    strokeWidth: 2,
-                  },
-                ],
-              }}
-              width={Math.max(chartWidth, weeklyTrend.length * 60)}
-              height={220}
-              chartConfig={chartConfig}
-              bezier
-              style={styles.chartStyle}
-            />
-          ) : (
-            <Text style={styles.emptyText}>No trend data yet.</Text>
-          )}
-        </View>
-      </View>
-
+       
       {/* Upcoming Duties */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Upcoming Duties</Text>
